@@ -1,0 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ===== TAILWIND V4 THEME: NEON ARCADE DESIGN SYSTEM ===== */
+@theme {
+  /* --- Colors --- */
+  --color-surface: #0b1326;
+  --color-surface-dim: #0b1326;
+  --color-surface-bright: #31394d;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+  --color-on-surface: #dae2fd;
+  --color-on-surface-variant: #cfc2d6;
+  --color-background: #0b1326;
+  --color-on-background: #dae2fd;
+
+  --color-primary: #ddb7ff;
+  --color-on-primary: #490080;
+  --color-primary-container: #b76dff;
+  --color-on-primary-container: #400071;
+  --color-inverse-primary: #842bd2;
+
+  --color-secondary: #4cd7f6;
+  --color-on-secondary: #003640;
+  --color-secondary-container: #03b5d3;
+  --color-on-secondary-container: #00424e;
+
+  --color-tertiary: #ffb0cd;
+  --color-on-tertiary: #640039;
+  --color-tertiary-container: #f751a1;
+  --color-on-tertiary-container: #570032;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-outline: #988d9f;
+  --color-outline-variant: #4d4354;
+  --color-surface-tint: #ddb7ff;
+  --color-surface-variant: #2d3449;
+
+  --color-neon-green: #39ff14;
+  --color-neon-red: #ff3131;
+
+  /* --- Fonts --- */
+  --font-display: 'Sora', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-label: 'Space Grotesk', sans-serif;
+}
+
+/* ===== GLOBAL STYLES ===== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(221, 183, 255, 0.3);
+  color: #f0dbff;
+}
+
+/* ===== REUSABLE EFFECTS ===== */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(221, 183, 255, 0.2);
+  border-right: 1px solid rgba(221, 183, 255, 0.2);
+}
+
+.glass-panel-cyan {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(76, 215, 246, 0.2);
+  border-right: 1px solid rgba(76, 215, 246, 0.2);
+}
+
+.neon-glow-primary {
+  box-shadow: 0 0 15px rgba(221, 183, 255, 0.3);
+}
+
+.neon-glow-primary-hover:hover {
+  box-shadow: 0 0 25px rgba(221, 183, 255, 0.5);
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+
+.neon-glow-secondary {
+  box-shadow: 0 0 15px rgba(76, 215, 246, 0.3);
+}
+
+.neon-glow-tertiary {
+  box-shadow: 0 0 15px rgba(255, 176, 205, 0.3);
+}
+
+.neon-text-primary {
+  text-shadow: 0 0 10px rgba(221, 183, 255, 0.5);
+}
+
+.neon-text-secondary {
+  text-shadow: 0 0 10px rgba(76, 215, 246, 0.5);
+}
+
+.neon-text-tertiary {
+  text-shadow: 0 0 10px rgba(255, 176, 205, 0.5);
+}
+
+/* Grid background pattern */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(76, 215, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(76, 215, 246, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Radial mesh gradient */
+.radial-mesh {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(221, 183, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(76, 215, 246, 0.1) 0%, transparent 50%);
+}
+
+/* CRT scanline overlay */
+.scanline-overlay {
+  background: linear-gradient(transparent 50%,
+      rgba(0, 0, 0, 0.15) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* Pulsing glow badge */
+.pulse-badge {
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 215, 246, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(76, 215, 246, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 215, 246, 0);
+  }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Typewriter cursor blink */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.typewriter-cursor::after {
+  content: '▌';
+  animation: blink 1s step-end infinite;
+  color: var(--color-primary);
+}
+
+/* Game canvas glow border */
+.glow-border-secondary {
+  box-shadow: 0 0 15px var(--color-secondary), inset 0 0 15px var(--color-secondary);
+  border: 1px solid var(--color-secondary);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-container-lowest);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}

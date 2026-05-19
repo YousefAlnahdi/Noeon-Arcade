@@ -1,0 +1,20 @@
+import "./globals.css";
+import { AuthProvider } from "@/lib/AuthContext";
+
+export const metadata = {
+  title: "Neon Arcade — AI Retro Gaming Platform",
+  description:
+    "Experience classic games supercharged by AI. Play Tic-Tac-Toe and Snake with intelligent AI opponents, strategy coaches, and post-game analytics.",
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en" className="dark h-full antialiased" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col grid-bg radial-mesh relative bg-surface text-on-surface">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}
