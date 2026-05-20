@@ -244,6 +244,38 @@ export default function Dashboard() {
                   </div>
                 </article>
               </Link>
+
+              {/* Interrogation Card */}
+              <Link href="/interrogation">
+                <article className="relative h-[320px] rounded-2xl overflow-hidden group cursor-pointer neon-glow-primary-hover glass-panel">
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-500/15 via-red-500/5 to-surface-container-lowest transition-transform duration-700 group-hover:scale-105" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-15 group-hover:opacity-25 transition-opacity">
+                    <span className="font-display text-[100px] font-extrabold text-red-400">🕵️</span>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-low/80 to-transparent" />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="bg-red-500/15 text-red-400 border border-red-500/30 px-2 py-1 rounded-full font-label text-[10px] tracking-wider uppercase pulse-badge">
+                      AI Detective
+                    </span>
+                  </div>
+                  <div className="absolute bottom-0 w-full p-6 glass-panel !border-t-white/10 !border-b-0 !border-l-0 !border-r-0 rounded-b-2xl">
+                    <h3 className="font-display text-2xl font-bold text-white mb-1 group-hover:text-red-400 transition-colors">
+                      غرفة الاستجواب
+                    </h3>
+                    <p className="font-body text-sm text-on-surface-variant mb-3">
+                      Interrogate AI suspects. Find contradictions.
+                    </p>
+                    <div className="flex gap-2">
+                      <div className="flex items-center gap-1 bg-surface-container-high/50 px-2 py-1 rounded text-xs font-label text-red-400">
+                        🔍 Detect Lies
+                      </div>
+                      <div className="flex items-center gap-1 bg-surface-container-high/50 px-2 py-1 rounded text-xs font-label text-amber-400">
+                        🧠 AI Suspect
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </Link>
             </div>
           </section>
 
@@ -312,11 +344,11 @@ export default function Dashboard() {
                       <div key={game.id} className="p-3 bg-surface-container-low/50 rounded-xl border border-white/5 flex items-center justify-between text-xs hover:border-white/10 transition-colors">
                         <div className="flex items-center gap-2.5">
                           <span className="text-base">
-                            {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : game.game_type === 'adventure' ? '📜' : '🐍'}
+                            {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : game.game_type === 'adventure' ? '📜' : game.game_type === 'interrogation' ? '🕵️' : '🐍'}
                           </span>
                           <div>
                             <p className="font-display font-medium text-white capitalize text-xs animate-pulse">
-                              {game.game_type === 'tictactoe' ? 'Tic-Tac-Toe' : game.game_type === 'blackjack' ? 'Cyber Blackjack' : game.game_type === 'quiz' ? 'Neural Quiz' : game.game_type === 'adventure' ? 'Beyond the CRT' : 'Neural Snake'}
+                              {game.game_type === 'tictactoe' ? 'Tic-Tac-Toe' : game.game_type === 'blackjack' ? 'Cyber Blackjack' : game.game_type === 'quiz' ? 'Neural Quiz' : game.game_type === 'adventure' ? 'Beyond the CRT' : game.game_type === 'interrogation' ? 'غرفة الاستجواب' : 'Neural Snake'}
                             </p>
                             <p className="font-body text-[10px] text-on-surface-variant">
                               {new Date(game.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
