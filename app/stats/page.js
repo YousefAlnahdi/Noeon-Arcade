@@ -13,7 +13,8 @@ export default function StatsPage() {
         tictactoe: { games: 0, wins: 0, draws: 0 },
         snake: { games: 0, highScore: 0, wins: 0 },
         blackjack: { games: 0, wins: 0, losses: 0 },
-        quiz: { games: 0, wins: 0, highScore: 0 }
+        quiz: { games: 0, wins: 0, highScore: 0 },
+        adventure: { games: 0, wins: 0, avgSteps: 0 }
     });
     const [recentGames, setRecentGames] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -70,6 +71,11 @@ export default function StatsPage() {
                             games: statsData.quiz_games ?? 0,
                             wins: statsData.quiz_wins ?? 0,
                             highScore: statsData.quiz_high_score ?? 0
+                        },
+                        adventure: {
+                            games: statsData.adventure_games ?? 0,
+                            wins: statsData.adventure_wins ?? 0,
+                            avgSteps: statsData.adventure_avg_steps ?? 0
                         }
                     });
                 }
@@ -274,6 +280,38 @@ export default function StatsPage() {
                         </div>
                         <p className="font-body text-xs text-on-surface-variant mt-2">{stats.quiz.games > 0 ? Math.round((stats.quiz.wins / stats.quiz.games) * 100) : 0}% win rate</p>
                     </div>
+
+                    {/* Adventure Stats */}
+                    <div className="glass-panel rounded-2xl p-6 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-400/50" />
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 rounded-xl bg-amber-400/15 flex items-center justify-center border border-amber-400/30 text-lg">
+                                📜
+                            </div>
+                            <div>
+                                <h3 className="font-display text-lg font-semibold text-on-surface">Beyond the CRT</h3>
+                                <p className="font-body text-xs text-on-surface-variant">Story & Choices</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Runs</p>
+                                <p className="font-display text-2xl font-bold text-on-surface">{stats.adventure.games}</p>
+                            </div>
+                            <div>
+                                <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Wins</p>
+                                <p className="font-display text-2xl font-bold text-neon-green">{stats.adventure.wins}</p>
+                            </div>
+                            <div>
+                                <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Avg Steps</p>
+                                <p className="font-display text-2xl font-bold text-amber-400">{stats.adventure.avgSteps}</p>
+                            </div>
+                        </div>
+                        <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                            <div className="h-full bg-amber-400 rounded-full transition-all duration-1000" style={{ width: `${stats.adventure.games > 0 ? (stats.adventure.wins / stats.adventure.games) * 100 : 0}%` }} />
+                        </div>
+                        <p className="font-body text-xs text-on-surface-variant mt-2">{stats.adventure.games > 0 ? Math.round((stats.adventure.wins / stats.adventure.games) * 100) : 0}% survival rate</p>
+                    </div>
                 </div>
 
                 {/* Recent Games */}
@@ -299,13 +337,13 @@ export default function StatsPage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-surface-container-high border
-                                                ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : game.game_type === 'blackjack' ? 'border-tertiary/20 text-tertiary' : game.game_type === 'quiz' ? 'border-neon-green/20 text-neon-green' : 'border-secondary/20 text-secondary'}
+                                                ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : game.game_type === 'blackjack' ? 'border-tertiary/20 text-tertiary' : game.game_type === 'quiz' ? 'border-neon-green/20 text-neon-green' : game.game_type === 'adventure' ? 'border-amber-400/20 text-amber-400' : 'border-secondary/20 text-secondary'}
                                             `}>
-                                                {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : '🐍'}
+                                                {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : game.game_type === 'adventure' ? '📜' : '🐍'}
                                             </div>
                                             <div>
                                                 <p className="font-display font-semibold text-on-surface capitalize">
-                                                    {game.game_type === 'tictactoe' ? `Tic-Tac-Toe (${game.game_mode})` : game.game_type === 'blackjack' ? `Cyber Blackjack (${game.game_mode})` : game.game_type === 'quiz' ? `Neural Quiz (${game.game_mode})` : `Neural Snake (${game.game_mode})`}
+                                                    {game.game_type === 'tictactoe' ? `Tic-Tac-Toe (${game.game_mode})` : game.game_type === 'blackjack' ? `Cyber Blackjack (${game.game_mode})` : game.game_type === 'quiz' ? `Neural Quiz (${game.game_mode})` : game.game_type === 'adventure' ? `Beyond the CRT (${game.game_mode})` : `Neural Snake (${game.game_mode})`}
                                                 </p>
                                                 <p className="font-body text-xs text-on-surface-variant">
                                                     {new Date(game.created_at).toLocaleDateString()} at {new Date(game.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

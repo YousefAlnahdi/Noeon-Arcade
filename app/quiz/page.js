@@ -173,8 +173,7 @@ export default function QuizPage() {
                     </span>
                 ))}
 
-                {/* Scan Beam */}
-                <div className="scan-beam z-10" />
+
 
                 {/* ============ MENU STATE ============ */}
                 {gameState === 'menu' && (
