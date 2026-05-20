@@ -17,11 +17,11 @@ export const checkWin = (board) => {
 };
 
 // Deterministic Minimax algorithm for perfect AI play
-export const getBestMove = (board, player, makeDumb = false) => {
+export const getBestMove = (board, player, makeDumb = false, dumbChance = 0.40) => {
     const opponent = player === 'X' ? 'O' : 'X';
 
-    // 40% chance to make a random move to keep AI competitive but beatable
-    if (makeDumb && Math.random() < 0.40) {
+    // chance to make a random move to keep AI competitive but beatable
+    if (makeDumb && Math.random() < dumbChance) {
         const availableMoves = [];
         for (let i = 0; i < 9; i++) {
             if (!board[i]) availableMoves.push(i);
@@ -92,9 +92,11 @@ export const useTicTacToeStore = create((set, get) => ({
     aiPersona: 'provoker',
     playerWins: 0,
     aiWins: 0,
+    difficulty: 'medium', // 'easy' | 'medium' | 'hard'
 
     setMode: (mode) => set({ mode, playerWins: 0, aiWins: 0 }),
     setPersona: (persona) => set({ aiPersona: persona }),
+    setDifficulty: (difficulty) => set({ difficulty }),
 
     makeMove: (index) => {
         const { board, isPlayerTurn, winner, mode } = get();
@@ -155,7 +157,19 @@ export const useTicTacToeStore = create((set, get) => ({
             // Trigger AI Move
             setTimeout(() => {
                 const currentBoard = get().board;
-                const aiMove = getBestMove([...currentBoard], get().aiSymbol, true);
+                const difficulty = get().difficulty;
+                let makeDumb = true;
+                let dumbChance = 0.35;
+
+                if (difficulty === 'easy') {
+                    dumbChance = 0.70;
+                } else if (difficulty === 'medium') {
+                    dumbChance = 0.35;
+                } else if (difficulty === 'hard') {
+                    makeDumb = false;
+                }
+
+                const aiMove = getBestMove([...currentBoard], get().aiSymbol, makeDumb, dumbChance);
 
                 if (aiMove !== -1) {
                     const aiBoard = [...currentBoard];

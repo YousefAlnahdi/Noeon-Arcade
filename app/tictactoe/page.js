@@ -8,17 +8,22 @@ import { askDeepSeek } from '@/lib/deepseek';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 
-const PERSONAS = [
+const BASE_PERSONAS = [
     { id: 'provoker', label: 'The Provoker', emoji: '😈', color: 'text-error' },
     { id: 'cheerleader', label: 'The Cheerleader', emoji: '🎉', color: 'text-neon-green' },
     { id: 'joker', label: 'The Joker', emoji: '🃏', color: 'text-tertiary' },
+];
+
+const SHOP_PERSONAS = [
+    { id: 'hacker', label: 'The Hacker', emoji: '🧑‍💻', color: 'text-secondary' },
+    { id: 'sage', label: 'The Sage', emoji: '🧘', color: 'text-primary' },
 ];
 
 export default function TicTacToePage() {
     const {
         board, mode, setMode, aiPersona, setPersona, makeMove, resetGame,
         isPlayerTurn, winner, winningLine, playerSymbol, aiSymbol,
-        playerWins, aiWins
+        playerWins, aiWins, difficulty, setDifficulty
     } = useTicTacToeStore();
 
     const [aiChat, setAiChat] = useState("I'm watching your moves closely...");
@@ -28,9 +33,18 @@ export default function TicTacToePage() {
     const [coachTip, setCoachTip] = useState("Analyze the board before placing your first mark.");
     const [coachGlow, setCoachGlow] = useState(false);
     const [coachHighlightIndex, setCoachHighlightIndex] = useState(null);
+    const [coachEnabled, setCoachEnabled] = useState(true);
 
     const { user, playerProfile } = useAuth();
-    const persona = PERSONAS.find((p) => p.id === aiPersona);
+    const unlockedItems = playerProfile?.unlocked_items || [];
+    const availablePersonas = [
+        ...BASE_PERSONAS,
+        ...SHOP_PERSONAS.filter(p => unlockedItems.includes(`persona:${p.id}`))
+    ];
+    const persona = availablePersonas.find((p) => p.id === aiPersona) || BASE_PERSONAS[0];
+
+    const [gameAnalysis, setGameAnalysis] = useState("");
+    const [analysisLoading, setAnalysisLoading] = useState(false);
     // AI Trigger Hook
     useEffect(() => {
         if (mode === 'pvp') return;
@@ -53,10 +67,13 @@ export default function TicTacToePage() {
             // Give AI Persona text when Player makes a move
             if (mode === 'persona' && (!isPlayerTurn || winner)) {
                 setAiThinking(true);
-                const prompt = `You are playing ${persona.label}. Your personality is: ${persona.id === 'provoker' ? "Trash-talking, arrogant, mocking." :
+                const prompt = `You are playing ${persona.label}. Your personality is: ${
+                    persona.id === 'provoker' ? "Trash-talking, arrogant, mocking." :
                     persona.id === 'cheerleader' ? "Incredibly positive, encouraging, hype-woman." :
-                        "Sarcastic, makes terrible jokes, chaos gremlin."
-                    } Describe your thoughts on the board in 1-2 SHORT sentences. Note: you just made a move (or are about to).`;
+                    persona.id === 'joker' ? "Sarcastic, makes terrible jokes, chaos gremlin." :
+                    persona.id === 'hacker' ? "A chaotic hacker who speaks in leetspeak/binary fragments and tech slang." :
+                    "A calm Zen master who speaks in deep, cryptic riddles."
+                } Describe your thoughts on the board in 1-2 SHORT sentences. Note: you just made a move (or are about to).`;
 
                 const reply = await askDeepSeek([], gameContext, prompt);
                 setAiChat(reply);
@@ -115,6 +132,9 @@ turnTrigger();
     useEffect(() => {
         const saveScore = async () => {
             if (winner && user) {
+                setAnalysisLoading(true);
+                setGameAnalysis("Connecting to Neural Network for Match Review...");
+
                 // Determine result
                 let finalScore = 0;
                 let outcome = 'draw';
@@ -125,6 +145,39 @@ turnTrigger();
                     outcome = 'loss';
                 }
 
+                const rawBoard = board;
+                const asciiBoard = `
+ ${rawBoard[0] || ' '} | ${rawBoard[1] || ' '} | ${rawBoard[2] || ' '}
+---+---+---
+ ${rawBoard[3] || ' '} | ${rawBoard[4] || ' '} | ${rawBoard[5] || ' '}
+---+---+---
+ ${rawBoard[6] || ' '} | ${rawBoard[7] || ' '} | ${rawBoard[8] || ' '}
+`;
+
+                let critique = "Critique engine offline.";
+                try {
+                    const gameContext = {
+                        board: asciiBoard,
+                        winner: outcome === 'win' ? 'Player (X)' : outcome === 'loss' ? 'AI (O)' : 'Draw',
+                        game_mode: mode
+                    };
+
+                    const prompt = `You are the Neural Arcade AI Game Analyst. The player just finished a Tic-Tac-Toe game in mode '${mode}'.
+Final Board State:
+${asciiBoard}
+Winner: ${outcome === 'win' ? 'Player (X)' : outcome === 'loss' ? 'AI (O)' : 'Draw'}
+
+Provide a 2-sentence tactical breakdown/critique of the match. Keep the tone retro, arcade-like, and direct.`;
+
+                    critique = await askDeepSeek([], gameContext, prompt);
+                    setGameAnalysis(critique);
+                } catch (err) {
+                    console.error("Analysis generation error:", err);
+                    setGameAnalysis("Analysis generation failed.");
+                } finally {
+                    setAnalysisLoading(false);
+                }
+
                 await supabase.from('game_sessions').insert({
                     user_id: user.id,
                     game_type: 'tictactoe',
@@ -133,6 +186,7 @@ turnTrigger();
                     score: finalScore,
                     tokens_earned: outcome === 'win' ? 10 : outcome === 'draw' ? 2 : 0,
                     ai_persona: aiPersona,
+                    ai_analysis: critique,
                     telemetry: {
                         mode,
                         ai_persona: aiPersona
@@ -230,10 +284,10 @@ return (
                         {/* Persona Selector (visible only in persona mode) */}
                         {mode === 'persona' && (
                             <div className="w-full max-w-md flex gap-2 mb-6">
-                                {PERSONAS.map((p) => (
+                                {availablePersonas.map((p) => (
                                     <button
                                         key={p.id}
-                                        onClick={() => { setPersona(p.id); resetGame(); }}
+                                        onClick={() => { setPersona(p.id); resetGame(); setGameAnalysis(""); }}
                                         className={`flex-1 py-2 rounded-xl font-label text-xs tracking-wider transition-all flex items-center justify-center gap-1 ${aiPersona === p.id
                                             ? 'bg-surface-container-high border border-primary/30 text-white'
                                             : 'bg-surface-container/30 border border-white/5 text-on-surface-variant hover:bg-white/5'
@@ -242,6 +296,33 @@ return (
                                         <span>{p.emoji}</span> {p.label}
                                     </button>
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Difficulty Selector (visible for AI modes) */}
+                        {(mode === 'persona' || mode === 'coach') && (
+                            <div className="w-full max-w-md flex flex-col gap-2 mb-6">
+                                <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest text-center font-bold">Bot Difficulty</p>
+                                <div className="flex gap-2">
+                                    {[
+                                        { id: 'easy', label: 'Easy' },
+                                        { id: 'medium', label: 'Medium' },
+                                        { id: 'hard', label: 'Hard (Perfect)' }
+                                    ].map((diff) => (
+                                        <button
+                                            key={diff.id}
+                                            onClick={() => { setDifficulty(diff.id); resetGame(); }}
+                                            className={`flex-1 py-1.5 rounded-lg font-label text-[10px] tracking-wider uppercase transition-all ${difficulty === diff.id
+                                                ? diff.id === 'easy' ? 'bg-neon-green/20 text-neon-green border border-neon-green/50 shadow-[0_0_8px_rgba(57,255,20,0.2)]'
+                                                  : diff.id === 'medium' ? 'bg-secondary/20 text-secondary border border-secondary/50 shadow-[0_0_8px_rgba(76,215,246,0.2)]'
+                                                  : 'bg-error/20 text-error border border-error/50 shadow-[0_0_8px_rgba(255,180,171,0.2)]'
+                                                : 'bg-surface-container/30 border border-white/5 text-on-surface-variant hover:bg-white/5'
+                                            }`}
+                                        >
+                                            {diff.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
@@ -284,7 +365,7 @@ return (
                             {/* Cells */}
                             {board.map((cell, i) => {
                                 const isWinningCell = winningLine.includes(i);
-                                const isCoachHighlight = coachHighlightIndex === i;
+                                const isCoachHighlight = coachHighlightIndex === i && coachEnabled;
                                 return (
                                     <button
                                         key={i}
@@ -311,10 +392,20 @@ return (
                             })}
                         </div>
 
+                        {winner && (
+                            <div className="w-full max-w-md mt-6 glass-panel rounded-2xl p-5 border border-primary/30 text-center animate-fade-in relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary to-secondary" />
+                                <h4 className="font-label text-xs text-primary tracking-[0.2em] uppercase mb-2">🤖 NEURAL MATCH REVIEW</h4>
+                                <p className="font-body text-xs text-on-surface-variant italic">
+                                    {gameAnalysis}
+                                </p>
+                            </div>
+                        )}
+
                         {/* Reset/Actions */}
                         <div className="mt-8 flex gap-4">
                             <button
-                                onClick={() => { resetGame(); setCoachHighlightIndex(null); }}
+                                onClick={() => { resetGame(); setCoachHighlightIndex(null); setGameAnalysis(""); }}
                                 className="px-6 py-3 bg-surface-container border border-white/10 text-on-surface font-label text-xs tracking-wider uppercase rounded-xl hover:bg-surface-variant transition-colors"
                             >
                                 Reset Game
@@ -369,18 +460,21 @@ return (
                                     Strategy Coach
                                 </h3>
                                 {/* Toggle */}
-                                <button className="w-12 h-6 bg-primary/20 rounded-full relative p-1 border border-primary/50 transition-colors">
-                                    <div className="w-4 h-4 bg-primary rounded-full absolute right-1 top-0.5 shadow-[0_0_10px_rgba(221,183,255,0.8)] transition-transform" />
+                                <button 
+                                    onClick={() => setCoachEnabled(!coachEnabled)}
+                                    className={`w-12 h-6 rounded-full relative p-1 border transition-colors ${coachEnabled ? 'bg-primary/20 border-primary/50' : 'bg-surface-container-high border-white/10'}`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full absolute top-0.5 shadow-[0_0_10px_rgba(221,183,255,0.8)] transition-transform ${coachEnabled ? 'right-1 bg-primary' : 'left-1 bg-on-surface-variant'}`} />
                                 </button>
                             </div>
-                            <div className={`bg-surface-container-low p-4 rounded-xl border transition-all relative overflow-hidden group mb-4 ${coachGlow ? 'border-primary shadow-[0_0_15px_rgba(221,183,255,0.4)]' : 'border-primary/20'}`}>
+                            <div className={`bg-surface-container-low p-4 rounded-xl border transition-all relative overflow-hidden group mb-4 ${coachGlow && coachEnabled ? 'border-primary shadow-[0_0_15px_rgba(221,183,255,0.4)]' : 'border-primary/20'}`}>
                                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <div className="flex items-center gap-3 mb-2">
                                     <span className="text-primary text-lg">💡</span>
                                     <span className="font-label text-xs text-primary tracking-[0.2em] uppercase">AI Recommendation</span>
                                 </div>
                                 <p className="font-body text-sm text-on-surface">
-                                    {mode === 'coach' ? coachTip : 'Enable Coach Mode to receive live strategic analysis from the DeepSeek neural network.'}
+                                    {mode === 'coach' && coachEnabled ? coachTip : !coachEnabled ? 'Strategy Coach recommendations are muted.' : 'Enable Coach Mode to receive live strategic analysis from the DeepSeek neural network.'}
                                 </p>
                             </div>
                             <div className="mt-auto pt-6 border-t border-white/10">

@@ -25,20 +25,39 @@ export const useSnakeStore = create((set, get) => ({
     gameState: 'idle', // 'idle' | 'playing' | 'gameover'
     mode: 'classic', // 'classic' | 'gamemaster' | 'rival'
     activePowerups: { shield: false, speed: false },
+    foodValue: 10,
+    difficulty: 'medium', // 'easy' | 'medium' | 'hard'
 
     // Rival Snake state
     rivalSnake: [],
     rivalDirection: { x: 0, y: 0 },
     rivalScore: 0,
 
-    setMode: (mode) => set({ mode }),
+    setMode: (mode) => {
+        const isPlaying = get().gameState === 'playing';
+        if (mode === 'rival' && isPlaying) {
+            set({
+                rivalSnake: [
+                    { x: COLS - 5, y: ROWS - 5 },
+                    { x: COLS - 4, y: ROWS - 5 },
+                    { x: COLS - 3, y: ROWS - 5 }
+                ],
+                rivalScore: 0,
+                mode
+            });
+        } else if (mode !== 'rival') {
+            set({ rivalSnake: [], mode });
+        } else {
+            set({ mode });
+        }
+    },
 
     startGame: () => {
         set({
             snake: INITIAL_SNAKE,
-            direction: INITIAL_DIRECTION,
+            direction: { x: 0, y: 0 },
             score: 0,
-            gameState: 'playing',
+            gameState: 'countdown',
             obstacles: [],
             activePowerups: { shield: false, speed: false },
             speedState: 'normal',
@@ -49,6 +68,7 @@ export const useSnakeStore = create((set, get) => ({
                 { x: COLS - 3, y: ROWS - 5 }
             ] : [],
             rivalScore: 0,
+            foodValue: 10,
         });
     },
 
@@ -63,6 +83,9 @@ export const useSnakeStore = create((set, get) => ({
     gameTick: () => {
         const state = get();
         if (state.gameState !== 'playing') return;
+
+        // If stationary, do not move or check collisions
+        if (state.direction.x === 0 && state.direction.y === 0) return;
 
         const head = state.snake[0];
         const newHead = {
@@ -112,12 +135,25 @@ export const useSnakeStore = create((set, get) => ({
         let newScore = state.score;
         let newFood = state.food;
 
-        // 4. Check Food Collision
-        if (newHead.x === state.food.x && newHead.y === state.food.y) {
-            newScore += 10;
-            newFood = generateFood(newSnake, state.obstacles, state.rivalSnake);
+        // Pathfinder mode win check
+        if (state.mode === 'pathfinder') {
+            if (newHead.x === state.food.x && newHead.y === state.food.y) {
+                set({
+                    snake: newSnake,
+                    gameState: 'won'
+                });
+                return;
+            }
+            newSnake.pop(); // Keep snake length fixed to navigate roads
         } else {
-            newSnake.pop(); // Remove tail if no food eaten
+            // 4. Check Food Collision
+            if (newHead.x === state.food.x && newHead.y === state.food.y) {
+                newScore += state.foodValue;
+                newFood = generateFood(newSnake, state.obstacles, state.rivalSnake);
+                set({ foodValue: 10 }); // Reset to default after eating
+            } else {
+                newSnake.pop(); // Remove tail if no food eaten
+            }
         }
 
         // --- RIVAL SNAKE LOGIC ---
@@ -184,12 +220,7 @@ export const useSnakeStore = create((set, get) => ({
         }
 
         // --- GAME MASTER LOGIC ---
-        if (state.mode === 'gamemaster') {
-            // Spawn an obstacle every time score crosses a 50-point threshold
-            if (newScore > 0 && newScore % 50 === 0 && newScore > state.score) {
-                get().spawnObstacle();
-            }
-        }
+        // rule-based obstacle spawning is deactivated in favor of AI Dungeon Master commands
 
         set({
             snake: newSnake,
@@ -229,6 +260,38 @@ export const useSnakeStore = create((set, get) => ({
 
     grantShield: () => {
         set(state => ({ activePowerups: { ...state.activePowerups, shield: true } }));
+    },
+
+    setDifficulty: (difficulty) => {
+        set({ difficulty });
+    },
+
+    spawnObstaclesAt: (coords) => {
+        const state = get();
+        if (state.gameState !== 'playing') return;
+        const valid = coords.filter(c =>
+            c.x >= 0 && c.x < COLS && c.y >= 0 && c.y < ROWS &&
+            !state.snake.some(s => s.x === c.x && s.y === c.y) &&
+            !(state.food.x === c.x && state.food.y === c.y) &&
+            !state.obstacles.some(o => o.x === c.x && o.y === c.y)
+        );
+        set({ obstacles: [...state.obstacles, ...valid].slice(-15) });
+    },
+
+    setSpeedState: (speedState) => {
+        if (['slow', 'normal', 'fast'].includes(speedState)) {
+            set({ speedState });
+        }
+    },
+
+    setFoodPosition: (x, y, val) => {
+        if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+            set({ food: { x, y }, foodValue: val || 10 });
+        }
+    },
+
+    clearObstacles: () => {
+        set({ obstacles: [] });
     }
 }));
 

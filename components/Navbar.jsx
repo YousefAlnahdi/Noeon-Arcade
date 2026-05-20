@@ -14,6 +14,7 @@ export default function Navbar() {
     const navLinks = [
         { href: '/', label: 'Arcade Home' },
         { href: '/stats', label: 'My Stats' },
+        { href: '/shop', label: 'Token Shop' },
         { href: '/about', label: 'About' },
     ];
 

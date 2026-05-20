@@ -219,29 +219,42 @@ export default function StatsPage() {
                     ) : (
                         <div className="flex flex-col gap-3">
                             {recentGames.map((game) => (
-                                <div key={game.id} className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl border border-white/5 hover:border-white/10 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-surface-container-high border
-                                            ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : 'border-secondary/20 text-secondary'}
-                                        `}>
-                                            {game.game_type === 'tictactoe' ? '❌' : '🐍'}
+                                <div key={game.id} className="flex flex-col gap-3 p-4 bg-surface-container-low rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-surface-container-high border
+                                                ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : 'border-secondary/20 text-secondary'}
+                                            `}>
+                                                {game.game_type === 'tictactoe' ? '❌' : '🐍'}
+                                            </div>
+                                            <div>
+                                                <p className="font-display font-semibold text-on-surface capitalize">
+                                                    {game.game_type === 'tictactoe' ? `Tic-Tac-Toe (${game.game_mode})` : `Neural Snake (${game.game_mode})`}
+                                                </p>
+                                                <p className="font-body text-xs text-on-surface-variant">
+                                                    {new Date(game.created_at).toLocaleDateString()} at {new Date(game.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-display font-semibold text-on-surface capitalize">{game.game_type === 'tictactoe' ? 'Tic-Tac-Toe' : 'Neural Snake'}</p>
-                                            <p className="font-body text-xs text-on-surface-variant">
-                                                {new Date(game.created_at).toLocaleDateString()} at {new Date(game.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        <div className="text-right">
+                                            <p className={`font-label text-sm uppercase tracking-wider font-bold ${game.result === 'win' ? 'text-neon-green' :
+                                                game.result === 'loss' ? 'text-error' :
+                                                    'text-outline'
+                                                }`}>
+                                                {game.result}
+                                            </p>
+                                            <p className="font-body text-xs text-on-surface-variant mt-1">{game.score} pts</p>
+                                        </div>
+                                    </div>
+                                    {game.ai_analysis && (
+                                        <div className="mt-1 bg-surface-container-highest/60 border border-white/5 p-3 rounded-lg flex gap-2.5 items-start">
+                                            <span className="text-base shrink-0 select-none">🤖</span>
+                                            <p className="font-body text-xs text-on-surface-variant leading-relaxed">
+                                                <span className="font-label text-[10px] text-primary uppercase tracking-widest block mb-0.5 font-semibold">AI Critique Summary</span>
+                                                {game.ai_analysis}
                                             </p>
                                         </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className={`font-label text-sm uppercase tracking-wider font-bold ${game.result === 'win' ? 'text-neon-green' :
-                                            game.result === 'loss' ? 'text-error' :
-                                                'text-outline'
-                                            }`}>
-                                            {game.result}
-                                        </p>
-                                        <p className="font-body text-xs text-on-surface-variant mt-1">{game.score} pts</p>
-                                    </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

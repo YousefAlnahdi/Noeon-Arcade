@@ -5,7 +5,7 @@ const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
 export async function POST(req) {
     try {
-        const { messages, gameContext, promptInstruction } = await req.json();
+        const { messages, gameContext, promptInstruction, maxTokens } = await req.json();
 
         if (!DEEPSEEK_API_KEY) {
             return NextResponse.json({ error: 'DeepSeek API Key missing' }, { status: 500 });
@@ -25,7 +25,7 @@ ${JSON.stringify(gameContext)}
             model: 'deepseek-chat', // Assuming base tier chat model, adjust if it should be deepseek-reasoner
             messages: [systemMessage, ...messages],
             temperature: 0.7,
-            max_tokens: 150 // Keep responses quick for the game chat
+            max_tokens: maxTokens || 150
         };
 
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {

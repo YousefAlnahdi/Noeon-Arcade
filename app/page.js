@@ -26,6 +26,13 @@ export default function Dashboard() {
               START PLAYING
             </Link>
             <Link
+              href="/shop"
+              className="glass-panel text-tertiary font-label text-sm tracking-wider uppercase px-6 py-3 rounded-2xl hover:bg-tertiary/10 transition-colors flex items-center gap-2 font-semibold"
+            >
+              <span className="text-lg">🛒</span>
+              TOKEN SHOP
+            </Link>
+            <Link
               href="/stats"
               className="glass-panel text-secondary font-label text-sm tracking-wider uppercase px-6 py-3 rounded-2xl hover:bg-secondary/10 transition-colors flex items-center gap-2 font-semibold"
             >
