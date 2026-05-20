@@ -2,8 +2,42 @@
 
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export default function Dashboard() {
+  const { user, playerProfile } = useAuth();
+  const [recentGames, setRecentGames] = useState([]);
+  const [loadingLogs, setLoadingLogs] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setLoadingLogs(false);
+      return;
+    }
+
+    const fetchRecentGames = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('game_sessions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+        if (data) {
+          setRecentGames(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingLogs(false);
+      }
+    };
+
+    fetchRecentGames();
+  }, [user]);
+
   return (
     <>
       <Navbar />
@@ -134,28 +168,80 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <div className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Current Rank</div>
-                  <div className="font-display text-lg font-semibold text-white">Rookie</div>
+                  <div className="font-display text-lg font-semibold text-white">
+                    {user ? (playerProfile?.rank || 'Rookie') : 'Offline'}
+                  </div>
                 </div>
               </div>
 
               {/* Token Balance */}
-              <div className="bg-surface-container/50 rounded-xl p-4 border border-white/5 flex justify-between items-center group hover:border-secondary/30 transition-colors">
+              <Link href="/shop" className="bg-surface-container/50 rounded-xl p-4 border border-white/5 flex justify-between items-center group hover:border-secondary/30 transition-colors">
                 <div>
                   <div className="font-label text-xs text-on-surface-variant mb-1 uppercase tracking-wider">Total Tokens</div>
-                  <div className="font-display text-3xl font-bold text-secondary">0</div>
+                  <div className="font-display text-3xl font-bold text-secondary">
+                    {user ? (playerProfile?.tokens ?? 0) : '—'}
+                  </div>
                 </div>
                 <span className="text-secondary opacity-50 group-hover:opacity-100 transition-opacity text-4xl">⬡</span>
-              </div>
+              </Link>
 
               {/* Recent Logs */}
               <div className="flex-grow flex flex-col gap-3">
                 <div className="font-label text-xs text-on-surface-variant uppercase tracking-[0.2em] mt-2">Recent Logs</div>
-                <div className="flex flex-col gap-2 flex-grow justify-center items-center text-center py-8">
-                  <span className="text-3xl opacity-30">🎮</span>
-                  <p className="font-body text-sm text-on-surface-variant opacity-60">
-                    No games played yet.<br />Start playing to see your logs!
-                  </p>
-                </div>
+
+                {!user ? (
+                  <div className="flex flex-col gap-2 flex-grow justify-center items-center text-center py-6">
+                    <span className="text-3xl opacity-30">🔒</span>
+                    <p className="font-body text-xs text-on-surface-variant opacity-60 mb-2">
+                      Neural Link Offline.<br />Connect to upload game session logs.
+                    </p>
+                    <Link href="/login" className="px-4 py-2 bg-primary/20 text-primary border border-primary/30 rounded-full font-label text-[10px] tracking-wider uppercase hover:bg-primary/30 transition-colors">
+                      CONNECT LINK
+                    </Link>
+                  </div>
+                ) : loadingLogs ? (
+                  <div className="flex-grow flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+                  </div>
+                ) : recentGames.length === 0 ? (
+                  <div className="flex flex-col gap-2 flex-grow justify-center items-center text-center py-8">
+                    <span className="text-3xl opacity-30">🎮</span>
+                    <p className="font-body text-sm text-on-surface-variant opacity-60">
+                      No games played yet.<br />Start playing to see your logs!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-1">
+                    {recentGames.map((game) => (
+                      <div key={game.id} className="p-3 bg-surface-container-low/50 rounded-xl border border-white/5 flex items-center justify-between text-xs hover:border-white/10 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-base">
+                            {game.game_type === 'tictactoe' ? '❌' : '🐍'}
+                          </span>
+                          <div>
+                            <p className="font-display font-medium text-white capitalize text-xs animate-pulse">
+                              {game.game_type === 'tictactoe' ? 'Tic-Tac-Toe' : 'Neural Snake'}
+                            </p>
+                            <p className="font-body text-[10px] text-on-surface-variant">
+                              {new Date(game.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`font-label text-[10px] uppercase font-bold tracking-wider ${
+                            game.result === 'win' ? 'text-neon-green' : game.result === 'loss' ? 'text-error' : 'text-outline'
+                          }`}>
+                            {game.result}
+                          </span>
+                          <p className="font-body text-[10px] text-on-surface-variant">{game.score} pts</p>
+                        </div>
+                      </div>
+                    ))}
+                    <Link href="/stats" className="text-center font-label text-[10px] text-primary/80 hover:text-primary tracking-widest uppercase mt-2 transition-colors">
+                      VIEW FULL HISTORY →
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </aside>
