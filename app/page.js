@@ -179,7 +179,7 @@ export default function Dashboard() {
                 <div>
                   <div className="font-label text-xs text-on-surface-variant mb-1 uppercase tracking-wider">Total Tokens</div>
                   <div className="font-display text-3xl font-bold text-secondary">
-                    {user ? (playerProfile?.tokens ?? 0) : '—'}
+                    {user ? (playerProfile?.total_tokens ?? 0) : '—'}
                   </div>
                 </div>
                 <span className="text-secondary opacity-50 group-hover:opacity-100 transition-opacity text-4xl">⬡</span>
