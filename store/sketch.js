@@ -24,17 +24,22 @@ You receive:
 2. A list of POSSIBLE WORDS — the answer is ALWAYS one of these words
 3. Your previous wrong guesses to avoid repeating
 
-Your job: pick the 3 most likely words FROM THE PROVIDED LIST that match the drawing.
-Study the overall shape, silhouette, and proportions. Think about what object would create that outline.
+Your job: pick the SINGLE most likely word FROM THE PROVIDED LIST that matches the drawing.
+Study the overall silhouette carefully. Count the major shapes. Look for distinguishing features:
+- Circular shapes (sun, moon, ball, apple, donut)
+- Triangular shapes (mountain, tree, volcano)
+- Long thin shapes (snake, sword, banana, river)
+- Complex multi-part shapes (robot, guitar, octopus, butterfly)
+- Rectangular shapes (house, book, phone, car)
 
 Return ONLY valid JSON, no markdown:
-{"guesses": ["word1", "word2", "word3"]}
+{"guess": "your_single_best_guess"}
 
 CRITICAL RULES:
-- You MUST pick words from the provided word list ONLY
+- Pick EXACTLY ONE word from the provided list
 - Do NOT repeat previous guesses
-- Do NOT invent new words outside the list
-- Order by confidence (best guess first)`;
+- Actually LOOK at the drawing shape before guessing
+- If the drawing is minimal/unclear, pick the word whose shape most closely matches what you see`;
 
 export { CATEGORIES, WORD_LISTS };
 
@@ -109,6 +114,7 @@ export const useSketchStore = create((set, get) => ({
     submitGuess: async (asciiArt) => {
         const state = get();
         if (state.gameState !== 'playing' || state.isGuessing || state.aiGuessedCorrectly) return;
+        if (state.aiGuesses.length >= 5) return; // Max 5 guesses total
 
         set({ isGuessing: true });
 
@@ -129,31 +135,26 @@ export const useSketchStore = create((set, get) => ({
             const clean = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
             const parsed = JSON.parse(clean);
 
-            if (parsed && Array.isArray(parsed.guesses)) {
+            // Handle single guess format
+            const guessWord = parsed.guess || (Array.isArray(parsed.guesses) ? parsed.guesses[0] : null);
+
+            if (guessWord) {
                 const targetLower = state.currentWord.toLowerCase().trim();
-                const newGuesses = [];
-                let matched = false;
+                const guessLower = guessWord.toLowerCase().trim();
+                const isCorrect = guessLower === targetLower
+                    || targetLower.includes(guessLower)
+                    || guessLower.includes(targetLower);
 
-                for (const guess of parsed.guesses.slice(0, 3)) {
-                    const guessLower = guess.toLowerCase().trim();
-                    const isCorrect = guessLower === targetLower
-                        || targetLower.includes(guessLower)
-                        || guessLower.includes(targetLower);
-
-                    newGuesses.push({ text: guess, isCorrect, time: 60 - state.timeLeft });
-                    if (isCorrect) matched = true;
-                }
+                const newGuess = { text: guessWord, isCorrect, time: 60 - state.timeLeft };
 
                 set((s) => ({
-                    aiGuesses: [...s.aiGuesses, ...newGuesses],
+                    aiGuesses: [...s.aiGuesses, newGuess],
                     isGuessing: false,
                 }));
 
-                if (matched) {
+                if (isCorrect) {
                     const elapsed = 60 - state.timeLeft;
                     get().endRound(true, elapsed);
-                } else {
-                    set({ isGuessing: false });
                 }
                 return;
             }

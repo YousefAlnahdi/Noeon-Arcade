@@ -122,7 +122,7 @@ export default function SketchPage() {
         }
     }, [round]);
 
-    // Periodic AI guessing every 8 seconds
+    // Periodic AI guessing every 12 seconds
     useEffect(() => {
         if (gameState !== 'playing') {
             if (guessIntervalRef.current) clearInterval(guessIntervalRef.current);
@@ -132,10 +132,10 @@ export default function SketchPage() {
         guessIntervalRef.current = setInterval(() => {
             const canvas = canvasRef.current;
             const state = useSketchStore.getState();
-            if (!canvas || state.aiGuessedCorrectly || state.isGuessing || state.timeLeft > 52) return;
+            if (!canvas || state.aiGuessedCorrectly || state.isGuessing || state.timeLeft > 48 || state.aiGuesses.length >= 5) return;
             const ascii = canvasToAscii(canvas);
             submitGuess(ascii);
-        }, 8000);
+        }, 12000);
 
         return () => { if (guessIntervalRef.current) clearInterval(guessIntervalRef.current); };
     }, [gameState, submitGuess]);
@@ -450,7 +450,8 @@ export default function SketchPage() {
                                             <div className="flex-1 flex flex-col items-center justify-center text-center p-4 opacity-50">
                                                 <span className="text-3xl mb-2">🤖</span>
                                                 <p className="font-body text-xs text-on-surface-variant">
-                                                    AI is watching you draw...<br />First guess in ~8 seconds
+                                                    AI is watching you draw...<br />First guess in ~12 seconds<br />
+                                                    <span className="text-[10px] text-on-surface-variant/50">Max 5 guesses per round</span>
                                                 </p>
                                             </div>
                                         ) : (
