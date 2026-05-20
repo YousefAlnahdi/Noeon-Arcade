@@ -17,21 +17,24 @@ const CATEGORIES = {
     random:   { label: '🎲 Random', color: '#ffb000' },
 };
 
-const GUESS_SYSTEM_PROMPT = `You are an AI playing a Pictionary-style drawing guessing game.
-You will receive a low-resolution ASCII pixel art representation of a player's drawing.
-█ = drawn pixel, · = empty pixel.
+const GUESS_SYSTEM_PROMPT = `You are playing a Pictionary drawing guessing game. A player drew something and you must identify it.
 
-Analyze the shapes, curves, proportions, and overall structure carefully.
-Think about what common object/animal/food/thing could match these shapes.
+You receive:
+1. An ASCII pixel grid of the drawing (█ = drawn, · = empty)
+2. A list of POSSIBLE WORDS — the answer is ALWAYS one of these words
+3. Your previous wrong guesses to avoid repeating
 
-Return ONLY valid JSON with NO markdown wrapping:
-{"guesses": ["your_best_guess", "second_guess", "third_guess"]}
+Your job: pick the 3 most likely words FROM THE PROVIDED LIST that match the drawing.
+Study the overall shape, silhouette, and proportions. Think about what object would create that outline.
 
-Rules:
-- Each guess should be 1-2 words maximum
-- Guesses should be common, everyday things
-- Be creative but reasonable in your interpretation
-- Consider the category hint provided`;
+Return ONLY valid JSON, no markdown:
+{"guesses": ["word1", "word2", "word3"]}
+
+CRITICAL RULES:
+- You MUST pick words from the provided word list ONLY
+- Do NOT repeat previous guesses
+- Do NOT invent new words outside the list
+- Order by confidence (best guess first)`;
 
 export { CATEGORIES, WORD_LISTS };
 
@@ -50,6 +53,7 @@ export const useSketchStore = create((set, get) => ({
     roundHistory: [],
     isGuessing: false,
     usedWords: [],
+    activeCategory: 'animals',
 
     setCategory: (cat) => set({ category: cat }),
 
@@ -77,6 +81,7 @@ export const useSketchStore = create((set, get) => ({
 
         set({
             currentWord: word,
+            activeCategory: cat,
             round: state.round + 1,
             score: 0,
             timeLeft: 60,
@@ -107,14 +112,17 @@ export const useSketchStore = create((set, get) => ({
 
         set({ isGuessing: true });
 
-        const cat = state.category === 'random' ? 'mixed' : state.category;
+        const activeCat = state.activeCategory;
+        const wordList = WORD_LISTS[activeCat] || [];
+        const previousGuesses = state.aiGuesses.map(g => g.text.toLowerCase());
+        const remainingWords = wordList.filter(w => !previousGuesses.includes(w.toLowerCase()));
 
         try {
             const context = {
                 ascii_drawing: asciiArt,
-                category_hint: cat,
-                time_elapsed: 60 - state.timeLeft,
-                previous_guesses: state.aiGuesses.map(g => g.text)
+                possible_words: remainingWords.join(', '),
+                category: activeCat,
+                previous_wrong_guesses: previousGuesses.join(', ') || 'none yet',
             };
 
             const reply = await askDeepSeek([], context, GUESS_SYSTEM_PROMPT, 100);

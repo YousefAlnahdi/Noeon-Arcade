@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { useSketchStore, CATEGORIES } from '@/store/sketch';
 
-function canvasToAscii(canvas, gridSize = 28) {
+function canvasToAscii(canvas, gridSize = 40) {
     const temp = document.createElement('canvas');
     temp.width = gridSize;
     temp.height = gridSize;
