@@ -127,7 +127,7 @@ export const useBlackjackStore = create((set, get) => ({
 
     startGame: async (userId) => {
         const state = get();
-        if (state.gameState !== 'betting') return;
+        if (state.gameState !== 'betting' && state.gameState !== 'round-end') return;
 
         let currentCredits = state.credits;
         if (currentCredits < state.bet) {

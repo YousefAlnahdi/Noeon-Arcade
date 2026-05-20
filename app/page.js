@@ -84,7 +84,7 @@ export default function Dashboard() {
               <h2 className="font-display text-3xl font-bold text-on-surface">Featured Games</h2>
               <span className="font-label text-xs text-primary tracking-[0.2em] uppercase">Select Mode</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {/* Tic-Tac-Toe Card */}
               <Link href="/tictactoe">
                 <article className="relative h-[320px] rounded-2xl overflow-hidden group cursor-pointer neon-glow-primary-hover glass-panel">
@@ -180,6 +180,38 @@ export default function Dashboard() {
                   </div>
                 </article>
               </Link>
+
+              {/* Quiz Card */}
+              <Link href="/quiz">
+                <article className="relative h-[320px] rounded-2xl overflow-hidden group cursor-pointer neon-glow-primary-hover glass-panel">
+                  <div className="absolute inset-0 bg-gradient-to-br from-neon-green/15 via-neon-green/5 to-surface-container-lowest transition-transform duration-700 group-hover:scale-105" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-15 group-hover:opacity-25 transition-opacity">
+                    <span className="font-mono text-[80px] font-extrabold text-neon-green">?!</span>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-low/80 to-transparent" />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="bg-neon-green/15 text-neon-green border border-neon-green/30 px-2 py-1 rounded-full font-label text-[10px] tracking-wider uppercase pulse-badge">
+                      Knowledge & Speed
+                    </span>
+                  </div>
+                  <div className="absolute bottom-0 w-full p-6 glass-panel !border-t-white/10 !border-b-0 !border-l-0 !border-r-0 rounded-b-2xl">
+                    <h3 className="font-display text-2xl font-bold text-white mb-1 group-hover:text-neon-green transition-colors">
+                      Neural Quiz
+                    </h3>
+                    <p className="font-body text-sm text-on-surface-variant mb-3">
+                      AI-generated trivia with adaptive difficulty.
+                    </p>
+                    <div className="flex gap-2">
+                      <div className="flex items-center gap-1 bg-surface-container-high/50 px-2 py-1 rounded text-xs font-label text-neon-green">
+                        🧠 AI Questions
+                      </div>
+                      <div className="flex items-center gap-1 bg-surface-container-high/50 px-2 py-1 rounded text-xs font-label text-amber-400">
+                        ⚡ Adaptive
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </Link>
             </div>
           </section>
 
@@ -248,11 +280,11 @@ export default function Dashboard() {
                       <div key={game.id} className="p-3 bg-surface-container-low/50 rounded-xl border border-white/5 flex items-center justify-between text-xs hover:border-white/10 transition-colors">
                         <div className="flex items-center gap-2.5">
                           <span className="text-base">
-                            {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : '🐍'}
+                            {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : '🐍'}
                           </span>
                           <div>
                             <p className="font-display font-medium text-white capitalize text-xs animate-pulse">
-                              {game.game_type === 'tictactoe' ? 'Tic-Tac-Toe' : game.game_type === 'blackjack' ? 'Cyber Blackjack' : 'Neural Snake'}
+                              {game.game_type === 'tictactoe' ? 'Tic-Tac-Toe' : game.game_type === 'blackjack' ? 'Cyber Blackjack' : game.game_type === 'quiz' ? 'Neural Quiz' : 'Neural Snake'}
                             </p>
                             <p className="font-body text-[10px] text-on-surface-variant">
                               {new Date(game.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
