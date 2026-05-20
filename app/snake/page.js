@@ -85,16 +85,16 @@ export default function SnakePage() {
             currentX += config.minSpacing + Math.floor(Math.random() * (config.maxSpacing - config.minSpacing + 1));
         }
 
-        // Build each pillar as a vertical wall with an alternating gap
-        pillarXPositions.forEach((px, index) => {
-            const gapFromTop = index % 2 === 0; // Even pillars: gap at top, Odd: gap at bottom
-
-            // Randomize where the gap sits within the column
-            const gapOffset = Math.floor(Math.random() * 4); // 0-3 cells of variance
+        // Build each pillar as a vertical wall with a randomized gap (top, middle, or bottom)
+        pillarXPositions.forEach((px) => {
+            const gapOffset = Math.floor(Math.random() * 4); // 0-3 cells variance
             let gapStart, gapEnd;
 
-            if (gapFromTop) {
-                // Gap near the top → wall extends from gap end down to bottom
+            // Roll to decide gap location: top (33%), bottom (33%), or middle (34%)
+            const gapTypeRoll = Math.random();
+
+            if (gapTypeRoll < 0.33) {
+                // Gap at the top
                 gapStart = 1 + gapOffset;
                 gapEnd = gapStart + config.gapSize;
                 // Wall below the gap
@@ -103,8 +103,8 @@ export default function SnakePage() {
                         addObs(px + t, y);
                     }
                 }
-            } else {
-                // Gap near the bottom → wall extends from top down to gap start
+            } else if (gapTypeRoll < 0.66) {
+                // Gap at the bottom
                 gapStart = ROWS - config.gapSize - 1 - gapOffset;
                 gapEnd = gapStart + config.gapSize;
                 // Wall above the gap
@@ -113,27 +113,55 @@ export default function SnakePage() {
                         addObs(px + t, y);
                     }
                 }
+            } else {
+                // Gap in the middle
+                const minMiddleCenter = 5 + Math.floor(config.gapSize / 2);
+                const maxMiddleCenter = ROWS - 5 - Math.ceil(config.gapSize / 2);
+                const gapCenter = minMiddleCenter + Math.floor(Math.random() * (maxMiddleCenter - minMiddleCenter + 1));
+                
+                gapStart = gapCenter - Math.floor(config.gapSize / 2);
+                gapEnd = gapStart + config.gapSize;
+
+                // Wall above the gap
+                for (let y = 0; y < gapStart; y++) {
+                    for (let t = 0; t < config.wallThickness; t++) {
+                        addObs(px + t, y);
+                    }
+                }
+                // Wall below the gap
+                for (let y = gapEnd; y < ROWS; y++) {
+                    for (let t = 0; t < config.wallThickness; t++) {
+                        addObs(px + t, y);
+                    }
+                }
             }
         });
 
         // ── STEP 2: Add horizontal connector walls between pillars ──
-        // These force the player to navigate through the gaps, not just hug the top/bottom edge
+        // Placing these at various heights to break up straight lines and force maneuvering
         for (let i = 0; i < pillarXPositions.length - 1; i++) {
             const x1 = pillarXPositions[i];
             const x2 = pillarXPositions[i + 1];
             const midX = Math.floor((x1 + x2) / 2);
+            
+            const wallRoll = Math.random();
+            const wallLen = 2 + Math.floor(Math.random() * 3);
 
-            if (i % 2 === 0) {
-                // After a top-gap pillar, add a horizontal wall along the top to block hugging
-                const wallY = 1 + Math.floor(Math.random() * 2);
-                const wallLen = 2 + Math.floor(Math.random() * 3);
+            if (wallRoll < 0.35) {
+                // Horizontal barrier near the top
+                const wallY = 2 + Math.floor(Math.random() * 2);
+                for (let wx = midX - Math.floor(wallLen / 2); wx <= midX + Math.floor(wallLen / 2); wx++) {
+                    addObs(wx, wallY);
+                }
+            } else if (wallRoll < 0.70) {
+                // Horizontal barrier near the bottom
+                const wallY = ROWS - 3 - Math.floor(Math.random() * 2);
                 for (let wx = midX - Math.floor(wallLen / 2); wx <= midX + Math.floor(wallLen / 2); wx++) {
                     addObs(wx, wallY);
                 }
             } else {
-                // After a bottom-gap pillar, add a horizontal wall along the bottom
-                const wallY = ROWS - 2 - Math.floor(Math.random() * 2);
-                const wallLen = 2 + Math.floor(Math.random() * 3);
+                // Floating horizontal block in the middle
+                const wallY = Math.floor(ROWS / 2) - 1 + Math.floor(Math.random() * 3);
                 for (let wx = midX - Math.floor(wallLen / 2); wx <= midX + Math.floor(wallLen / 2); wx++) {
                     addObs(wx, wallY);
                 }
@@ -459,17 +487,17 @@ Provide a 2-sentence performance breakdown/critique. Keep the tone technical, re
     useEffect(() => {
         if (gameState !== 'countdown') return;
 
+        let currentVal = 3;
         setCountdownVal(3);
 
         const timer = setInterval(() => {
-            setCountdownVal((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    useSnakeStore.setState({ gameState: 'playing' });
-                    return 0;
-                }
-                return prev - 1;
-            });
+            currentVal -= 1;
+            if (currentVal <= 0) {
+                clearInterval(timer);
+                useSnakeStore.setState({ gameState: 'playing' });
+            } else {
+                setCountdownVal(currentVal);
+            }
         }, 800);
 
         return () => clearInterval(timer);
