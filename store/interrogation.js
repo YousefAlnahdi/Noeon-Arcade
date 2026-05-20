@@ -139,8 +139,27 @@ export const useInterrogationStore = create((set, get) => ({
             .replace('{PERSONALITY}', cfg.personality);
 
         try {
-            const reply = await askDeepSeek([], {}, prompt, 1000);
-            const clean = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const reply = await askDeepSeek([], {}, prompt, 2000);
+            let clean = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+            // Fix truncated JSON — try to close open brackets/braces
+            if (!clean.endsWith('}')) {
+                // Count open vs close braces/brackets
+                const openBraces = (clean.match(/{/g) || []).length;
+                const closeBraces = (clean.match(/}/g) || []).length;
+                const openBrackets = (clean.match(/\[/g) || []).length;
+                const closeBrackets = (clean.match(/\]/g) || []).length;
+
+                // Remove trailing incomplete values
+                clean = clean.replace(/,\s*$/, '');
+                clean = clean.replace(/,\s*"[^"]*"?\s*$/, '');
+                clean = clean.replace(/:\s*"[^"]*$/, ': ""');
+
+                // Close remaining brackets/braces
+                for (let i = 0; i < openBrackets - closeBrackets; i++) clean += ']';
+                for (let i = 0; i < openBraces - closeBraces; i++) clean += '}';
+            }
+
             const caseData = JSON.parse(clean);
 
             if (!caseData.suspect || !caseData.contradictions || !caseData.truth) {
