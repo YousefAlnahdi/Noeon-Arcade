@@ -12,7 +12,6 @@ export default function StatsPage() {
         overall: { total: 0, wins: 0, losses: 0, winRate: 0 },
         tictactoe: { games: 0, wins: 0, draws: 0 },
         snake: { games: 0, highScore: 0, wins: 0 },
-        blackjack: { games: 0, wins: 0, losses: 0 },
         quiz: { games: 0, wins: 0, highScore: 0 },
         adventure: { games: 0, wins: 0, avgSteps: 0 }
     });
@@ -61,11 +60,6 @@ export default function StatsPage() {
                             games: statsData.snake_games,
                             highScore: statsData.snake_high_score,
                             wins: statsData.snake_wins
-                        },
-                        blackjack: {
-                            games: statsData.blackjack_games ?? 0,
-                            wins: statsData.blackjack_wins ?? 0,
-                            losses: statsData.blackjack_losses ?? 0
                         },
                         quiz: {
                             games: statsData.quiz_games ?? 0,
@@ -217,38 +211,6 @@ export default function StatsPage() {
                         <p className="font-body text-xs text-on-surface-variant mt-2">Target High Score Progress</p>
                     </div>
 
-                    {/* Blackjack Stats */}
-                    <div className="glass-panel rounded-2xl p-6 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary to-tertiary-container" />
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-tertiary/20 flex items-center justify-center border border-tertiary/30 text-lg">
-                                🃏
-                            </div>
-                            <div>
-                                <h3 className="font-display text-lg font-semibold text-on-surface">Cyber Blackjack</h3>
-                                <p className="font-body text-xs text-on-surface-variant">Risk & Cyber Hacks</p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4 mb-4">
-                            <div>
-                                <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Games</p>
-                                <p className="font-display text-2xl font-bold text-on-surface">{stats.blackjack.games}</p>
-                            </div>
-                            <div>
-                                <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Wins</p>
-                                <p className="font-display text-2xl font-bold text-neon-green">{stats.blackjack.wins}</p>
-                            </div>
-                            <div>
-                                <p className="font-label text-xs text-on-surface-variant uppercase tracking-wider">Losses</p>
-                                <p className="font-display text-2xl font-bold text-error">{stats.blackjack.losses}</p>
-                            </div>
-                        </div>
-                        <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-                            <div className="h-full bg-tertiary rounded-full transition-all duration-1000" style={{ width: `${stats.blackjack.games > 0 ? (stats.blackjack.wins / stats.blackjack.games) * 100 : 0}%` }} />
-                        </div>
-                        <p className="font-body text-xs text-on-surface-variant mt-2">{stats.blackjack.games > 0 ? Math.round((stats.blackjack.wins / stats.blackjack.games) * 100) : 0}% win rate</p>
-                    </div>
-
                     {/* Quiz Stats */}
                     <div className="glass-panel rounded-2xl p-6 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green to-neon-green/50" />
@@ -337,13 +299,13 @@ export default function StatsPage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-surface-container-high border
-                                                ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : game.game_type === 'blackjack' ? 'border-tertiary/20 text-tertiary' : game.game_type === 'quiz' ? 'border-neon-green/20 text-neon-green' : game.game_type === 'adventure' ? 'border-amber-400/20 text-amber-400' : game.game_type === 'gridrunner' ? 'border-cyan-400/20 text-cyan-400' : 'border-secondary/20 text-secondary'}
+                                                ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : game.game_type === 'quiz' ? 'border-neon-green/20 text-neon-green' : game.game_type === 'adventure' ? 'border-amber-400/20 text-amber-400' : game.game_type === 'gridrunner' ? 'border-cyan-400/20 text-cyan-400' : 'border-secondary/20 text-secondary'}
                                             `}>
-                                                {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : game.game_type === 'adventure' ? '📜' : game.game_type === 'gridrunner' ? '🚀' : '🐍'}
+                                                {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'quiz' ? '🧠' : game.game_type === 'adventure' ? '📜' : game.game_type === 'gridrunner' ? '🚀' : '🐍'}
                                             </div>
                                             <div>
                                                 <p className="font-display font-semibold text-on-surface capitalize">
-                                                    {game.game_type === 'tictactoe' ? `Tic-Tac-Toe (${game.game_mode})` : game.game_type === 'blackjack' ? `Cyber Blackjack (${game.game_mode})` : game.game_type === 'quiz' ? `Neural Quiz (${game.game_mode})` : game.game_type === 'adventure' ? `Beyond the CRT (${game.game_mode})` : game.game_type === 'gridrunner' ? `Neon Gridrunner (${game.game_mode})` : `Neural Snake (${game.game_mode})`}
+                                                    {game.game_type === 'tictactoe' ? `Tic-Tac-Toe (${game.game_mode})` : game.game_type === 'quiz' ? `Neural Quiz (${game.game_mode})` : game.game_type === 'adventure' ? `Beyond the CRT (${game.game_mode})` : game.game_type === 'gridrunner' ? `Neon Gridrunner (${game.game_mode})` : `Neural Snake (${game.game_mode})`}
                                                 </p>
                                                 <p className="font-body text-xs text-on-surface-variant">
                                                     {new Date(game.created_at).toLocaleDateString()} at {new Date(game.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

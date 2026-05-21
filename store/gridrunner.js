@@ -175,7 +175,7 @@ export const useGridrunnerStore = create((set, get) => ({
             });
             return true;
         } catch (err) {
-            console.error('AI Weapon Compilation failed, using fallback:', err);
+            console.warn('AI Weapon Compilation warning (handled):', err.message || err);
             set({
                 compilingError: 'Mainframe error: Could not compile custom algorithm. Load fallback specs.',
                 isCompiling: false
@@ -250,7 +250,7 @@ export const useGridrunnerStore = create((set, get) => ({
                     isBossGenerating: false
                 });
             } catch (err) {
-                console.error("AI Boss Generation failed, loading standard mainframe boss:", err);
+                console.warn("AI Boss Generation warning (handled):", err.message || err);
                 let fallbackHealth = 300 + nextWaveVal * 100;
                 if (bossType === 'sans') {
                     fallbackHealth *= 2;
@@ -333,7 +333,7 @@ Write a 2-sentence combat performance review in second-person. Use glowing neon,
                 critique = reply;
             }
         } catch (err) {
-            console.error("Gridrunner critique error:", err);
+            console.warn("Gridrunner critique warning (handled):", err.message || err);
         }
         
         try {
@@ -374,7 +374,7 @@ Write a 2-sentence combat performance review in second-person. Use glowing neon,
                 }
             }
         } catch (err) {
-            console.error("Failed to save Gridrunner session:", err);
+            console.warn("Failed to save Gridrunner session warning (handled):", err.message || err);
         }
     },
     

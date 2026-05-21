@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -138,7 +138,7 @@ export default function GridrunnerPage() {
                     setHealthPacks(count);
                 }
             } catch (err) {
-                console.error('Error fetching latest profile on mount:', err);
+                console.warn('Error fetching latest profile on mount:', err.message || err);
             }
         };
         fetchLatestProfile();
@@ -204,7 +204,7 @@ export default function GridrunnerPage() {
                 await refreshProfile();
             }
         } catch (err) {
-            console.error('Failed to consume health pack in DB:', err);
+            console.warn('Failed to consume health pack in DB:', err.message || err);
         } finally {
             isUsingHealRef.current = false;
         }
@@ -415,32 +415,50 @@ export default function GridrunnerPage() {
                 osc.stop(ctx.currentTime + 0.35);
             }
         } catch (e) {
-            console.error('Audio synthesizer error:', e);
+            console.warn('Audio synthesizer warning (handled):', e.message || e);
         }
     };
 
-    // Sans Boss Fight Soundtrack Handler
+    // Preload the high-quality Sans boss soundtrack on mount
     useEffect(() => {
         if (typeof window === 'undefined') return;
+        if (!sansMusicRef.current) {
+            sansMusicRef.current = new Audio('/068. Death By Glamour (UNDERTALE Soundtrack) - Toby Fox.mp3');
+            sansMusicRef.current.loop = true;
+            sansMusicRef.current.volume = 0.35;
+            sansMusicRef.current.preload = 'auto';
+        }
+        
+        return () => {
+            if (sansMusicRef.current) {
+                sansMusicRef.current.pause();
+                sansMusicRef.current.currentTime = 0;
+            }
+        };
+    }, []);
+
+    // Sans Boss Fight Soundtrack State Controller
+    useEffect(() => {
+        if (typeof window === 'undefined' || !sansMusicRef.current) return;
 
         const isSansFight = (gameState === 'playing' || gameState === 'boss-intro') && boss && boss.bossType === 'sans';
 
         if (isSansFight && soundEnabled && !isPaused) {
-            if (!sansMusicRef.current) {
-                sansMusicRef.current = new Audio('/sans_theme.mp3');
-                sansMusicRef.current.loop = true;
-                sansMusicRef.current.volume = 0.35;
+            if (sansMusicRef.current.paused) {
+                const playPromise = sansMusicRef.current.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => {
+                        if (e.name !== 'AbortError') {
+                            console.warn("Failed to play Sans boss theme:", e);
+                        }
+                    });
+                }
             }
-            sansMusicRef.current.play().catch(e => {
-                console.error("Failed to play Sans boss theme:", e);
-            });
         } else {
-            if (sansMusicRef.current) {
+            if (!sansMusicRef.current.paused) {
                 if (isPaused && (gameState === 'playing' || gameState === 'boss-intro') && boss && boss.bossType === 'sans') {
-                    // Only pause — keep the playhead position so it resumes seamlessly
                     sansMusicRef.current.pause();
                 } else {
-                    // Full stop — reset playhead to the start
                     sansMusicRef.current.pause();
                     sansMusicRef.current.currentTime = 0;
                 }
@@ -1948,7 +1966,7 @@ export default function GridrunnerPage() {
                 updatePhysics();
                 drawGame();
             } catch (err) {
-                console.error("Gridrunner Game Loop Error caught:", err);
+                console.warn("Gridrunner Game Loop warning (handled):", err.message || err);
             }
             gameLoopRef.current = requestAnimationFrame(runLoop);
         };
