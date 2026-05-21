@@ -430,7 +430,7 @@ export default function QuizPage() {
                                             <p className="font-body text-sm text-on-surface-variant italic terminal-cursor">Generating response</p>
                                         ) : (
                                             <p className="font-body text-sm text-on-surface-variant italic leading-relaxed">
-                                                "{aiExplanation}"
+                                                &ldquo;{aiExplanation}&rdquo;
                                             </p>
                                         )}
                                     </div>

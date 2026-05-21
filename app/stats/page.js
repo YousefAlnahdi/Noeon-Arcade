@@ -337,13 +337,13 @@ export default function StatsPage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl bg-surface-container-high border
-                                                ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : game.game_type === 'blackjack' ? 'border-tertiary/20 text-tertiary' : game.game_type === 'quiz' ? 'border-neon-green/20 text-neon-green' : game.game_type === 'adventure' ? 'border-amber-400/20 text-amber-400' : 'border-secondary/20 text-secondary'}
+                                                ${game.game_type === 'tictactoe' ? 'border-primary/20 text-primary' : game.game_type === 'blackjack' ? 'border-tertiary/20 text-tertiary' : game.game_type === 'quiz' ? 'border-neon-green/20 text-neon-green' : game.game_type === 'adventure' ? 'border-amber-400/20 text-amber-400' : game.game_type === 'gridrunner' ? 'border-cyan-400/20 text-cyan-400' : 'border-secondary/20 text-secondary'}
                                             `}>
-                                                {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : game.game_type === 'adventure' ? '📜' : '🐍'}
+                                                {game.game_type === 'tictactoe' ? '❌' : game.game_type === 'blackjack' ? '🃏' : game.game_type === 'quiz' ? '🧠' : game.game_type === 'adventure' ? '📜' : game.game_type === 'gridrunner' ? '🚀' : '🐍'}
                                             </div>
                                             <div>
                                                 <p className="font-display font-semibold text-on-surface capitalize">
-                                                    {game.game_type === 'tictactoe' ? `Tic-Tac-Toe (${game.game_mode})` : game.game_type === 'blackjack' ? `Cyber Blackjack (${game.game_mode})` : game.game_type === 'quiz' ? `Neural Quiz (${game.game_mode})` : game.game_type === 'adventure' ? `Beyond the CRT (${game.game_mode})` : `Neural Snake (${game.game_mode})`}
+                                                    {game.game_type === 'tictactoe' ? `Tic-Tac-Toe (${game.game_mode})` : game.game_type === 'blackjack' ? `Cyber Blackjack (${game.game_mode})` : game.game_type === 'quiz' ? `Neural Quiz (${game.game_mode})` : game.game_type === 'adventure' ? `Beyond the CRT (${game.game_mode})` : game.game_type === 'gridrunner' ? `Neon Gridrunner (${game.game_mode})` : `Neural Snake (${game.game_mode})`}
                                                 </p>
                                                 <p className="font-body text-xs text-on-surface-variant">
                                                     {new Date(game.created_at).toLocaleDateString()} at {new Date(game.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

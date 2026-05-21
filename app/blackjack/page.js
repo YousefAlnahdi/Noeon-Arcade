@@ -237,7 +237,7 @@ export default function BlackjackPage() {
                                     )}
                                 </h2>
                                 <p className="font-body text-xs text-on-surface-variant italic leading-relaxed mt-0.5 max-w-2xl">
-                                    "{aiCommentary}"
+                                    &ldquo;{aiCommentary}&rdquo;
                                 </p>
                             </div>
                         </div>

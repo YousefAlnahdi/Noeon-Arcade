@@ -54,8 +54,18 @@ const SHOP_PERSONAS = [
     }
 ];
 
+const SHOP_ITEMS = [
+    {
+        id: 'health_pack',
+        name: 'Health Pack',
+        emoji: '💚',
+        price: 30,
+        desc: 'Heals 35 HP on the Gridrunner battle grid. Press [H] during gameplay to consume. Single use.',
+    }
+];
+
 export default function ShopPage() {
-    const { user, playerProfile } = useAuth();
+    const { user, playerProfile, refreshProfile } = useAuth();
     const [tokens, setTokens] = useState(0);
     const [unlockedItems, setUnlockedItems] = useState([]);
     const [activeTheme, setActiveTheme] = useState('cyberpunk');
@@ -118,8 +128,14 @@ export default function ShopPage() {
 
             setTokens(updatedTokens);
             setUnlockedItems(updatedUnlocked);
-            setMessage({ text: `Successfully unlocked ${item.name}!`, type: 'success' });
+            const actionText = type === 'item' ? 'bought' : 'unlocked';
+            setMessage({ text: `Successfully ${actionText} ${item.name}!`, type: 'success' });
             
+            // Sync with global auth state immediately
+            if (refreshProfile) {
+                await refreshProfile();
+            }
+
             // Force reload window profile values if necessary (or rely on state)
             if (typeof window !== 'undefined') {
                 window.dispatchEvent(new Event('storage'));
@@ -131,6 +147,7 @@ export default function ShopPage() {
             setBuyingId(null);
         }
     };
+
 
     const handleApplyTheme = (themeId) => {
         localStorage.setItem('neon_arcade_theme', themeId);
@@ -279,61 +296,114 @@ export default function ShopPage() {
 
                     {/* Personas section */}
                     <aside className="lg:col-span-4 space-y-6">
-                        <h2 className="font-display text-2xl font-bold text-on-surface border-b border-white/10 pb-3">
-                            🧠 AI Personas
-                        </h2>
-                        
-                        <div className="flex flex-col gap-6">
-                            {SHOP_PERSONAS.map((persona) => {
-                                const isUnlocked = unlockedItems.includes(`persona:${persona.id}`);
-                                
-                                return (
-                                    <div 
-                                        key={persona.id} 
-                                        className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border border-white/5 relative"
-                                    >
-                                        <div className="flex gap-4 items-start">
-                                            <div className="w-12 h-12 rounded-xl bg-surface-container-high border border-white/10 flex items-center justify-center text-2xl shadow-inner shrink-0">
-                                                {persona.emoji}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-display text-base font-bold text-white">{persona.name}</h3>
-                                                    {isUnlocked && (
-                                                        <span className="text-[10px] bg-neon-green/20 text-neon-green border border-neon-green/30 px-1.5 py-0.5 rounded font-bold uppercase">
-                                                            Unlocked
-                                                        </span>
-                                                    )}
+                        <div className="glass-panel rounded-2xl p-6 border border-white/5">
+                            <h2 className="font-display text-xl font-bold text-on-surface border-b border-white/10 pb-3 mb-6">
+                                🧠 AI Personas
+                            </h2>
+                            
+                            <div className="flex flex-col gap-6">
+                                {SHOP_PERSONAS.map((persona) => {
+                                    const isUnlocked = unlockedItems.includes(`persona:${persona.id}`);
+                                    
+                                    return (
+                                        <div 
+                                            key={persona.id} 
+                                            className="bg-surface-container-low rounded-xl p-4 flex flex-col gap-4 border border-white/5 relative"
+                                        >
+                                            <div className="flex gap-3 items-start">
+                                                <div className="w-10 h-10 rounded-lg bg-surface-container-high border border-white/10 flex items-center justify-center text-xl shadow-inner shrink-0">
+                                                    {persona.emoji}
                                                 </div>
-                                                <p className="font-body text-xs text-on-surface-variant leading-relaxed mt-1">
-                                                    {persona.desc}
-                                                </p>
+                                                <div>
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <h3 className="font-display text-sm font-bold text-white">{persona.name}</h3>
+                                                        {isUnlocked && (
+                                                            <span className="text-[9px] bg-neon-green/20 text-neon-green border border-neon-green/30 px-1.5 py-0.5 rounded font-bold uppercase">
+                                                                Unlocked
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="font-body text-[11px] text-on-surface-variant leading-relaxed mt-1">
+                                                        {persona.desc}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-1">
+                                                {isUnlocked ? (
+                                                    <span className="font-label text-[10px] text-on-surface-variant tracking-wider uppercase font-semibold">
+                                                        Available in Tic-Tac-Toe
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handlePurchase(persona, 'persona')}
+                                                        disabled={buyingId === persona.id || tokens < persona.price}
+                                                        className="w-full bg-secondary text-on-secondary hover:brightness-110 disabled:opacity-50 disabled:hover:brightness-100 px-3 py-2 rounded-lg font-label text-[11px] tracking-wider uppercase font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                                    >
+                                                        {buyingId === persona.id ? 'Processing...' : (
+                                                            <>
+                                                                <span>⬡</span>
+                                                                Unlock — {persona.price} Tkn
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
 
-                                        <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-2">
-                                            {isUnlocked ? (
-                                                <span className="font-label text-xs text-on-surface-variant tracking-wider uppercase font-semibold">
-                                                    Available in Tic-Tac-Toe
-                                                </span>
-                                            ) : (
+                        <div className="glass-panel rounded-2xl p-6 border border-white/5">
+                            <h2 className="font-display text-xl font-bold text-on-surface border-b border-white/10 pb-3 mb-6">
+                                🧪 Consumables
+                            </h2>
+                            
+                            <div className="flex flex-col gap-6">
+                                {SHOP_ITEMS.map((item) => {
+                                    const count = unlockedItems.filter(x => x === `item:${item.id}`).length;
+                                    
+                                    return (
+                                        <div 
+                                            key={item.id} 
+                                            className="bg-surface-container-low rounded-xl p-4 flex flex-col gap-4 border border-white/5 relative"
+                                        >
+                                            <div className="flex gap-3 items-start">
+                                                <div className="w-10 h-10 rounded-lg bg-surface-container-high border border-white/10 flex items-center justify-center text-xl shadow-inner shrink-0">
+                                                    {item.emoji}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <h3 className="font-display text-sm font-bold text-white">{item.name}</h3>
+                                                        <span className="text-[10px] bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded font-bold uppercase">
+                                                            Qty: {count}
+                                                        </span>
+                                                    </div>
+                                                    <p className="font-body text-[11px] text-on-surface-variant leading-relaxed mt-1">
+                                                        {item.desc}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between border-t border-white/5 pt-3 mt-1">
                                                 <button
-                                                    onClick={() => handlePurchase(persona, 'persona')}
-                                                    disabled={buyingId === persona.id}
-                                                    className="w-full bg-secondary text-on-secondary hover:brightness-110 px-4 py-2.5 rounded-xl font-label text-xs tracking-wider uppercase font-semibold transition-all flex items-center justify-center gap-1.5"
+                                                    onClick={() => handlePurchase(item, 'item')}
+                                                    disabled={buyingId === item.id || tokens < item.price}
+                                                    className="w-full bg-primary text-on-primary hover:brightness-110 disabled:opacity-50 disabled:hover:brightness-100 px-3 py-2 rounded-lg font-label text-[11px] tracking-wider uppercase font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer"
                                                 >
-                                                    {buyingId === persona.id ? 'Processing...' : (
+                                                    {buyingId === item.id ? 'Processing...' : (
                                                         <>
                                                             <span>⬡</span>
-                                                            Unlock Persona — {persona.price} Tkn
+                                                            Buy — {item.price} Tkn
                                                         </>
                                                     )}
                                                 </button>
-                                            )}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     </aside>
                 </div>
