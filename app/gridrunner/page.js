@@ -619,7 +619,7 @@ export default function GridrunnerPage() {
                     scoreVal,
                     vx: Math.sin(r + c) * 1.5,
                     vy: 0,
-                    fireCooldown: Math.random() * 200 + 100 - currentWave * 5
+                    fireCooldown: Math.random() * 80 + 30 - currentWave * 3
                 });
             }
         }
@@ -657,7 +657,7 @@ export default function GridrunnerPage() {
         const player = playerRef.current;
         const phase = bossPhaseRef.current;
         const direction = Math.random() > 0.5 ? 'horizontal' : 'vertical';
-        const speed = 1.4 + phase * 0.4;
+        const speed = 2.4 + phase * 0.6;
         const gapSize = Math.max(70, 100 - phase * 8);
 
         if (direction === 'horizontal') {
@@ -708,19 +708,19 @@ export default function GridrunnerPage() {
                 player.x - gapSize / 2));
             bossAttacksRef.current.push({
                 type: 'beam', direction: 'horizontal',
-                position, chargeTime: 70, fireTime: 45, fadeTime: 15,
-                phase: 'charging', timer: 70, beamWidth: 35,
+                position, chargeTime: 50, fireTime: 35, fadeTime: 12,
+                phase: 'charging', timer: 50, beamWidth: 35,
                 gapStart, gapSize, color: '#ffffff'
             });
         } else {
             const offset = (Math.random() > 0.5 ? 1 : -1) * (80 + Math.random() * 120);
-            const position = Math.max(40, Math.min(canvas.width - 40, player.x + offset));
-            const gapStart = Math.max(canvas.height * 0.3, Math.min(canvas.height - gapSize - 30,
-                player.y - gapSize / 2));
+            const position = Math.max(60, Math.min(canvas.height - 60, player.y + offset));
+            const gapStart = Math.max(30, Math.min(canvas.width - gapSize - 30,
+                player.x - gapSize / 2));
             bossAttacksRef.current.push({
                 type: 'beam', direction: 'vertical',
-                position, chargeTime: 70, fireTime: 45, fadeTime: 15,
-                phase: 'charging', timer: 70, beamWidth: 35,
+                position, chargeTime: 50, fireTime: 35, fadeTime: 12,
+                phase: 'charging', timer: 50, beamWidth: 35,
                 gapStart, gapSize, color: '#ffffff'
             });
         }
@@ -1018,9 +1018,9 @@ export default function GridrunnerPage() {
             for (let e of enemiesRef.current) {
                 // Wave movement patterns
                 if (e.type === 'interceptor') {
-                    // Diving interceptor
-                    e.y += 2.5;
-                    e.x += e.vx * 1.5;
+                    // Diving interceptor (faster!)
+                    e.y += 4.5;
+                    e.x += e.vx * 2.0;
                     if (e.x < 50 || e.x > canvas.width - 50) e.vx *= -1;
                     if (e.y > canvas.height) {
                         e.y = -20;
@@ -1028,22 +1028,23 @@ export default function GridrunnerPage() {
                     }
                 } else if (e.type === 'bomber') {
                     // Slow heavy hoverer
-                    e.x = e.startX + Math.sin(timeRef.current / 40) * 120;
-                    e.y = e.startY + Math.cos(timeRef.current / 50) * 20;
+                    e.x = e.startX + Math.sin(timeRef.current / 30) * 140;
+                    e.y = e.startY + Math.cos(timeRef.current / 40) * 25;
                 } else {
                     // Classic fighter layout sway
-                    e.x = e.startX + Math.sin(timeRef.current / 30) * 80;
-                    e.y = e.startY + Math.sin(timeRef.current / 60) * 15;
+                    e.x = e.startX + Math.sin(timeRef.current / 22) * 90;
+                    e.y = e.startY + Math.sin(timeRef.current / 45) * 18;
                 }
 
                 // Enemy bullet firing cooldown
                 e.fireCooldown -= 1;
                 if (e.fireCooldown <= 0) {
-                    e.fireCooldown = Math.random() * 200 + 150 - waveRef.current * 4;
+                    // Much faster firing rate: 30 to 110 frames cooldown (0.5 - 1.8 seconds)
+                    e.fireCooldown = Math.max(15, Math.random() * 80 + 30 - waveRef.current * 3);
                     
                     // SOLAR FLARE increases enemy bullet velocity
-                    let bulletVy = 4 + waveRef.current * 0.3;
-                    if (e.type === 'interceptor') bulletVy = 6 + waveRef.current * 0.4;
+                    let bulletVy = 5.5 + waveRef.current * 0.4;
+                    if (e.type === 'interceptor') bulletVy = 7.5 + waveRef.current * 0.5;
                     if (hazardRef.current === 'SOLAR_FLARE') {
                         bulletVy *= 1.5;
                     }
@@ -1102,7 +1103,7 @@ export default function GridrunnerPage() {
                 if (isSans) {
                     // === SANS ATTACKS: Bone walls + Gaster beams ===
                     bossAttackTimerRef.current++;
-                    const attackInterval = phase === 1 ? 280 : phase === 2 ? 180 : 120;
+                    const attackInterval = phase === 1 ? 160 : phase === 2 ? 110 : 70;
 
                     if (bossAttackTimerRef.current >= attackInterval) {
                         bossAttackTimerRef.current = 0;
@@ -1123,16 +1124,16 @@ export default function GridrunnerPage() {
                         }
                     }
 
-                    // Sans also fires aimed shots in phase 2+
-                    if (phase >= 2 && timeRef.current % 150 === 0) {
+                    // Sans also fires aimed shots in phase 2+ (faster & more aggressive)
+                    if (phase >= 2 && timeRef.current % 80 === 0) {
                         synthSound('shoot');
                         const angle = Math.atan2(player.y - bossRef.current.y, player.x - bossRef.current.x);
                         for (let d = -1; d <= 1; d++) {
                             enemyBulletsRef.current.push({
                                 x: bossRef.current.x,
                                 y: bossRef.current.y + 50,
-                                vx: Math.cos(angle + d * 0.25) * 4.5,
-                                vy: Math.sin(angle + d * 0.25) * 4.5,
+                                vx: Math.cos(angle + d * 0.25) * 6,
+                                vy: Math.sin(angle + d * 0.25) * 6,
                                 size: 3.5,
                                 color: bossRef.current.eyeColor || '#00bfff'
                             });
@@ -1140,8 +1141,8 @@ export default function GridrunnerPage() {
                     }
                 } else {
                     // === OVERLORD ATTACKS: Radial rings + aimed bursts (classic) ===
-                    const fireRate1 = phase === 1 ? 100 : phase === 2 ? 70 : 50;
-                    const fireRate2 = phase === 1 ? 130 : phase === 2 ? 90 : 60;
+                    const fireRate1 = phase === 1 ? 60 : phase === 2 ? 40 : 30;
+                    const fireRate2 = phase === 1 ? 80 : phase === 2 ? 55 : 35;
 
                     if (timeRef.current % fireRate1 === 0) {
                         synthSound('hit');
@@ -1151,8 +1152,8 @@ export default function GridrunnerPage() {
                             enemyBulletsRef.current.push({
                                 x: bossRef.current.x,
                                 y: bossRef.current.y,
-                                vx: Math.cos(angle) * (3 + phase * 0.5),
-                                vy: Math.sin(angle) * (3 + phase * 0.5),
+                                vx: Math.cos(angle) * (4 + phase * 0.6),
+                                vy: Math.sin(angle) * (4 + phase * 0.6),
                                 size: 4.5,
                                 color: '#ff3131'
                             });
@@ -1167,8 +1168,8 @@ export default function GridrunnerPage() {
                             enemyBulletsRef.current.push({
                                 x: bossRef.current.x,
                                 y: bossRef.current.y,
-                                vx: Math.cos(angle + d * 0.15) * 5,
-                                vy: Math.sin(angle + d * 0.15) * 5,
+                                vx: Math.cos(angle + d * 0.15) * 6.5,
+                                vy: Math.sin(angle + d * 0.15) * 6.5,
                                 size: 4,
                                 color: '#f39c12'
                             });
@@ -1961,9 +1962,24 @@ export default function GridrunnerPage() {
             }
         };
 
-        const runLoop = () => {
+        let lastTime = performance.now();
+        const timeStep = 1000 / 60; // 16.67ms
+        let accumulator = 0;
+
+        const runLoop = (now) => {
             try {
-                updatePhysics();
+                if (!now) now = performance.now();
+                let dt = now - lastTime;
+                lastTime = now;
+
+                // Cap dt to prevent "spiral of death" during lag spikes or tab suspensions
+                if (dt > 100) dt = 100;
+                accumulator += dt;
+
+                while (accumulator >= timeStep) {
+                    updatePhysics();
+                    accumulator -= timeStep;
+                }
                 drawGame();
             } catch (err) {
                 console.warn("Gridrunner Game Loop warning (handled):", err.message || err);
